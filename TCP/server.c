@@ -72,7 +72,7 @@ int main() {
 		close(sockfd);
 		exit(0);
 	} else 
-		printf("Accepting...\n");
+		printf("Accepting...:\n");
 
 	chatFunc(connfd, sockfd);
 

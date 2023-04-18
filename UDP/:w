@@ -7,14 +7,14 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
-#include <arpa/inet.h>
+// #include <arpa/inet.h>
 
 int main() {
 	int sockfd, status, connfd;
 	struct sockaddr_in servaddr, cliaddr;
 
 	// socket creation
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) { 
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) { 
 		printf("Socket creation failed\n");
 		close(sockfd);
 		exit(0);
@@ -30,24 +30,17 @@ int main() {
 
 	// bind
 	if(bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1) {
-		printf("Failed to bi
-		nd\n");
+		printf("Failed to bind\n");
 		close(sockfd);
 		exit(0);
 	} else 
 		printf("Bind Successfull\n");
 
-	char msg[20] = "Server Exiting...", buffer[100];
-	int len = sizeof(cliaddr);
-	
-	recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&cliaddr, &len);
-	printf("%s", buffer);
-	
-	sendto(sockfd, msg, sizeof(msg), 0, (struct sockaddr *)&cliaddr , sizeof(servaddr));
-	
-	recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&cliaddr, &len);
-	printf("%s\n", buffer);
+	char buff[20];
+	int len;
+	recvfrom(sockfd, buff, sizeof(buff), 0, (struct sockaddr *)& cliaddr, &len);
 
+	puts(buffer);
 	// closing socket
 	close(sockfd);
 
