@@ -1,13 +1,46 @@
+/*
+	more on fd_set -> info.c
+	more on select -> info2.c
+*/
+
+
 // server
 
-#include <stdio.h>
-#include <sys/socket.h>
-#include <unistd.h>
-// #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+typedef struct packets {
+	char msg[200];
+	int idx;
+} Packets;
+
+void recvTime(int sockfd, struct sockaddr_in cliaddr) {
+	struct timeval timeout;
+	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
+	timeout.tv_usec = 0;	// no of microseconds for timeout
+
+	fd_set read_fds;
+	FD_ZERO(&read_fds);
+	FD_SET(sockfd, &read_fds);
+
+	Packets recvP, sendP;
+	int select_result;
+	socklen_t len = sizeof(cliaddr);
+
+	select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+
+	if (select_result) {
+		recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
+		printf("\tTime from Client: %s\n", recvP.msg);
+	} else
+		printf("Timeout\n");
+}
 
 int main() {
 	int sockfd, status, connfd;
@@ -36,18 +69,8 @@ int main() {
 	} else
 		printf("Bind Successfull\n");
 
-	char msg[20] = "Server Exiting...", buffer[100];
-	int len = sizeof(cliaddr);
+	recvTime(sockfd, servaddr);
 
-	recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&cliaddr, &len);
-	printf("%s", buffer);
-
-	sendto(sockfd, msg, sizeof(msg), 0, (struct sockaddr *)&cliaddr, sizeof(servaddr));
-
-	recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *)&cliaddr, &len);
-	printf("%s\n", buffer);
-
-	// closing socket
 	close(sockfd);
 
 	return 0;

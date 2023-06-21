@@ -18,7 +18,6 @@
 typedef struct packets {
 	char msg[200];
 	int idx;
-	int resend;
 } Packets;
 
 void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
