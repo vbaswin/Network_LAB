@@ -27,11 +27,7 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	FD_SET(sockfd, &read_fds);
 
 	int select_result;
-	printf("\n");
-
 	while (1) {
-		memset(sendP.msg, 0, sizeof(sendP.msg));
-
 		printf("Enter msg: ");
 		scanf("%[^\n]s", sendP.msg);
 		getchar();

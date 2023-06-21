@@ -30,10 +30,8 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	FD_SET(sockfd, &read_fds);
 
 	Packets recvP, sendP;
-	socklen_t len = sizeof(cliaddr);
-
 	int select_result;
-	printf("\n");
+	socklen_t len = sizeof(cliaddr);
 
 	while (1) {
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
@@ -50,7 +48,6 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 			break;
 		}
 
-		memset(sendP.msg, 0, sizeof(sendP.msg));
 
 		printf("Enter msg: ");
 		scanf("%[^\n]s", sendP.msg);
@@ -69,8 +66,8 @@ int main() {
 	int sockfd, status, connfd;
 	struct sockaddr_in servaddr, cliaddr;
 
-	// socket creation
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+	// AF_INET : AF -> Address Family AF_INET-> IPv4 address family
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		printf("Socket creation failed\n");
 		close(sockfd);
 		exit(0);
@@ -91,6 +88,23 @@ int main() {
 		exit(0);
 	} else
 		printf("Bind Successfull\n");
+
+	if ((status = listen(sockfd, 5)) == -1) {
+		printf("Error in listening\n");
+		close(sockfd);
+		exit(0);
+	} else
+		printf("Listening...\n");
+
+
+	socklen_t len = sizeof(cliaddr);
+
+	if ((connfd = accept(sockfd, (struct sockaddr *)&cliaddr, &len)) == -1) {
+		printf("Error in accepting\n");
+		close(sockfd);
+		exit(0);
+	} else
+		printf("Accepting...:\n");
 
 	chatLoop(sockfd, servaddr);
 

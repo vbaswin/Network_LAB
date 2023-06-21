@@ -27,7 +27,6 @@ To manipulate the `fd_set` and operate on individual file descriptors within it,
 - `FD_SET(int fd, fd_set *set)`: Adds the file descriptor `fd` to the set.	<---
 - `FD_CLR(int fd, fd_set *set)`: Removes the file descriptor `fd` from the set.
 - `FD_ISSET(int fd, fd_set *set)`: Checks if the file descriptor `fd` is a member of the set.
-							--> to check if the file descripter is ready for read(or write or not)
 ==-------------------------------------------------------------------------------------------====
 
 These macros help manage the file descriptor sets by setting and clearing the corresponding bits in the `fds_bits` array.

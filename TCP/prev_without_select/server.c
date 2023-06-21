@@ -1,8 +1,8 @@
 // server
 
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/socket.h>
+#include <unistd.h>
 // #include <sys/types.h>
 #include <netinet/in.h>
 #include <stdlib.h>
@@ -10,9 +10,9 @@
 
 void chatFunc(int connfd, int sockfd) {
 	char buff[20], rev[20];
-	while(1) {
-		memset(buff,0,20);
-		memset(rev,0,20);
+	while (1) {
+		memset(buff, 0, 20);
+		memset(rev, 0, 20);
 		read(connfd, buff, sizeof(buff));
 		if (!strcmp(buff, "exit")) {
 			printf("Server exiting...\n");
@@ -21,11 +21,10 @@ void chatFunc(int connfd, int sockfd) {
 		}
 		printf("From Server: %s\n\tTo Client: ", buff);
 		int n = strlen(buff);
-		for (int i = 0; i < n; ++i) 
+		for (int i = 0; i < n; ++i)
 			rev[i] = buff[n - i - 1];
 		printf("%s\n", rev);
 		write(connfd, rev, sizeof(rev));
-		
 	}
 }
 
@@ -34,11 +33,11 @@ int main() {
 	struct sockaddr_in servaddr, cli;
 
 	// socket creation
-	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) { 
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		printf("Socket creation failed\n");
 		close(sockfd);
 		exit(0);
-	} else 
+	} else
 		printf("Socket Creation Successfull\n");
 
 
@@ -49,11 +48,11 @@ int main() {
 	servaddr.sin_port = htons(8080);
 
 	// bind
-	if(bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1) {
+	if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1) {
 		printf("Failed to bind\n");
 		close(sockfd);
 		exit(0);
-	} else 
+	} else
 		printf("Bind Successfull\n");
 
 
@@ -62,16 +61,17 @@ int main() {
 		printf("Error in listening\n");
 		close(sockfd);
 		exit(0);
-	} else 
+	} else
 		printf("Listening...\n");
 
 	int len = sizeof(cli);
+
 	// accept
 	if ((connfd = accept(sockfd, (struct sockaddr *)&cli, &len)) == -1) {
 		printf("Error in accepting\n");
 		close(sockfd);
 		exit(0);
-	} else 
+	} else
 		printf("Accepting...:\n");
 
 	chatFunc(connfd, sockfd);
