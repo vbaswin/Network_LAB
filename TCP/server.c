@@ -25,6 +25,7 @@ void chatLoop(int connfd) {
 	Packets recvP, sendP;
 	int select_result;
 
+	printf("\n");
 	while (1) {
 		select_result = select(connfd + 1, &read_fds, NULL, NULL, &timeout);
 
@@ -46,9 +47,10 @@ void chatLoop(int connfd) {
 		}
 		memset(sendP.msg, 0, sizeof(sendP.msg));
 
-		printf("Enter msg: ");
-		scanf("%[^\n]s", sendP.msg);
-		getchar();
+		int n = strlen(recvP.msg);
+		for (int i = 0; i < n; ++i)
+			sendP.msg[i] = recvP.msg[n - i - 1];
+		sendP.msg[n] = 0;
 
 		send(connfd, &sendP, sizeof(sendP), 0);
 		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {

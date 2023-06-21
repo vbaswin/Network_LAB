@@ -28,6 +28,7 @@ void chatLoop(int sockfd) {
 	FD_SET(sockfd, &read_fds);
 
 	int select_result;
+	printf("\n");
 	while (1) {
 		memset(sendP.msg, 0, sizeof(sendP.msg));
 
@@ -56,15 +57,6 @@ void chatLoop(int sockfd) {
 			printf("Timeout\n");
 			break;
 		}
-
-		/*
-		recv(sockfd, &recvP, sizeof(recvP), 0);
-		printf("%s\n", recvP.msg);
-		if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
-			printf("Client Exiting...");
-			break;
-		}
-		*/
 	}
 }
 
