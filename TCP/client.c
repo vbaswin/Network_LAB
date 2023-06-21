@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,7 @@ typedef struct packets {
 	int idx;
 } Packets;
 
-void chatLoop(int sockfd, struct sockaddr_in servaddr) {
+void chatLoop(int sockfd) {
 	Packets sendP, recvP;
 
 	struct timeval timeout;
@@ -28,12 +29,13 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 
 	int select_result;
 	while (1) {
+		memset(sendP.msg, 0, sizeof(sendP.msg));
+
 		printf("Enter msg: ");
 		scanf("%[^\n]s", sendP.msg);
 		getchar();
-		// initial address resolution
-		sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)NULL, sizeof(servaddr));
 
+		send(sockfd, &sendP, sizeof(sendP), 0);
 		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
 			printf("Client Exiting...");
 			break;
@@ -42,7 +44,9 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 
 		if (select_result) {
-			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
+			// recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
+
+			recv(sockfd, &recvP, sizeof(recvP), 0);
 			if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
 				printf("Client Exiting...");
 				break;
@@ -52,6 +56,15 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 			printf("Timeout\n");
 			break;
 		}
+
+		/*
+		recv(sockfd, &recvP, sizeof(recvP), 0);
+		printf("%s\n", recvP.msg);
+		if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
+			printf("Client Exiting...");
+			break;
+		}
+		*/
 	}
 }
 
@@ -60,7 +73,7 @@ int main() {
 	struct sockaddr_in servaddr, cliaddr;
 
 	// socket creation
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		printf("Socket creation failed\n");
 		exit(0);
 	} else
@@ -79,7 +92,7 @@ int main() {
 	} else
 		printf("Connection successful\n");
 
-	chatLoop(sockfd, servaddr);
+	chatLoop(sockfd);
 
 	close(sockfd);
 

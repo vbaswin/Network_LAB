@@ -1,13 +1,6 @@
-/*
-	more on fd_set -> info.c
-	more on select -> info2.c
-*/
-
-
-// server
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,24 +13,23 @@ typedef struct packets {
 	int idx;
 } Packets;
 
-void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
+void chatLoop(int connfd) {
 	struct timeval timeout;
 	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
 	fd_set read_fds;
 	FD_ZERO(&read_fds);
-	FD_SET(sockfd, &read_fds);
+	FD_SET(connfd, &read_fds);
 
 	Packets recvP, sendP;
 	int select_result;
-	socklen_t len = sizeof(cliaddr);
 
 	while (1) {
-		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+		select_result = select(connfd + 1, &read_fds, NULL, NULL, &timeout);
 
 		if (select_result) {
-			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
+			recv(connfd, &recvP, sizeof(recvP), 0);
 			if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
 				printf("Server Exiting...");
 				break;
@@ -48,13 +40,17 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 			break;
 		}
 
+		if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
+			printf("Server Exiting...");
+			break;
+		}
+		memset(sendP.msg, 0, sizeof(sendP.msg));
 
 		printf("Enter msg: ");
 		scanf("%[^\n]s", sendP.msg);
 		getchar();
 
-		sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-
+		send(connfd, &sendP, sizeof(sendP), 0);
 		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
 			printf("Server Exiting...");
 			break;
@@ -97,16 +93,17 @@ int main() {
 		printf("Listening...\n");
 
 
-	socklen_t len = sizeof(cliaddr);
+	int len = sizeof(cliaddr);
 
 	if ((connfd = accept(sockfd, (struct sockaddr *)&cliaddr, &len)) == -1) {
 		printf("Error in accepting\n");
 		close(sockfd);
 		exit(0);
 	} else
-		printf("Accepting...:\n");
+		printf("Accepting...\n");
 
-	chatLoop(sockfd, servaddr);
+	chatLoop(connfd);
+	// printf("%d %d\n", sockfd, connfd); // they are different
 
 	close(sockfd);
 

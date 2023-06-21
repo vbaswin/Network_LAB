@@ -13,7 +13,7 @@ void chatFunc(int connfd, int sockfd) {
 	while (1) {
 		memset(buff, 0, 20);
 		memset(rev, 0, 20);
-		read(connfd, buff, sizeof(buff));
+		recv(connfd, buff, sizeof(buff), 0);
 		if (!strcmp(buff, "exit")) {
 			printf("Server exiting...\n");
 			close(sockfd);
@@ -24,7 +24,7 @@ void chatFunc(int connfd, int sockfd) {
 		for (int i = 0; i < n; ++i)
 			rev[i] = buff[n - i - 1];
 		printf("%s\n", rev);
-		write(connfd, rev, sizeof(rev));
+		send(connfd, buff, sizeof(buff), 0);
 	}
 }
 
