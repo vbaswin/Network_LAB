@@ -19,7 +19,7 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	Packets recvP;
 
 	struct timeval timeout;
-	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
+	timeout.tv_sec = 5;		// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
 	fd_set read_fds;
@@ -36,33 +36,43 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
 
 	while (1) {
-		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+		// select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 
-		if (select_result == -1) {
-			perror("Select");
-			exit(EXIT_FAILURE);
-		} else if (select_result) {
-			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
-			ack = recvP.idx + 1;
-			printf("recvP delay: %d\n", recvP.delay);
+		/*
+			if (select_result == -1) {
+				perror("Select");
+				exit(EXIT_FAILURE);
+			} else if (select_result) {
+				*/
+		recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
+		ack = recvP.idx + 1;
 
-			// sleep(recvP.delay);
-			if (recvP.delay > 4) {
-				continue;
-			}
-			printf("Packet [ %d ] received. Msg: %s\n", recvP.idx + 1, recvP.msg);
-			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		if (recvP.delay > 4) {
+			continue;
+		}
 
-			// if delay greater than 9
-			if (recvP.last) {
-				printf("\nClient Exiting...\n");
-				break;
-			}
-		} else {
-			printf("\nTimeout!!. Resend again...\n");
-			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		// sleep(recvP.delay);
+		printf("Packet [ %d ] received. Msg: %s\n", recvP.idx + 1, recvP.msg);
+
+		sleep(2);
+		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		printf("Ack send: %d\n\n", ack);
+
+		if (recvP.last) {
+			printf("\nClient Exiting...\n");
 			break;
 		}
+		/*
+	} else {
+		printf("\nTimeout!!. Resend again...\n");
+		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		printf("Ack send: %d\n\n", ack);
+		continue;
+	}
+	*/
+
+		// sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		// printf("Ack send: %d\n\n", ack);
 	}
 }
 
