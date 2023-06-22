@@ -1,30 +1,80 @@
-// client
-
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 typedef struct packets {
 	char msg[200];
 	int idx;
-	int resend;
-} Packets ;
+	int delay;
+	int last;
+} Packets;
+
+void chatLoop(int sockfd, struct sockaddr_in servaddr) {
+	Packets recvP;
+
+	struct timeval timeout;
+	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
+	timeout.tv_usec = 0;	// no of microseconds for timeout
+
+	fd_set read_fds;
+	FD_ZERO(&read_fds);
+	FD_SET(sockfd, &read_fds);
+
+	int select_result, ack;
+	printf("\n");
+
+	char addRes[] = "Initial Address resolution\n";
+	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+
+	// waiting till all the packet data are entered
+	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
+
+	while (1) {
+		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+
+		if (select_result == -1) {
+			perror("Select");
+			exit(EXIT_FAILURE);
+		} else if (select_result) {
+			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
+			ack = recvP.idx + 1;
+			printf("recvP delay: %d\n", recvP.delay);
+
+			// sleep(recvP.delay);
+			if (recvP.delay > 4) {
+				continue;
+			}
+			printf("Packet [ %d ] received. Msg: %s\n", recvP.idx + 1, recvP.msg);
+			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+
+			// if delay greater than 9
+			if (recvP.last) {
+				printf("\nClient Exiting...\n");
+				break;
+			}
+		} else {
+			printf("\nTimeout!!. Resend again...\n");
+			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+			break;
+		}
+	}
+}
 
 int main() {
 	int sockfd, status, connfd;
 	struct sockaddr_in servaddr, cliaddr;
 
 	// socket creation
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) { 
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		printf("Socket creation failed\n");
 		exit(0);
-	} else 
+	} else
 		printf("Socket Creation Successfull\n");
 
 
@@ -33,45 +83,15 @@ int main() {
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	servaddr.sin_port = htons(8080);
-	
+
 	if ((connfd = connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr))) == -1) {
 		printf("Connection failed\n");
 		exit(0);
-	} else 
+	} else
 		printf("Connection successful\n");
-	
-	Packets sendP, recvP;
-	
-	strcpy(sendP.msg, "Client connected!");
-	printf("%s\n", sendP.msg);
-	
-	
-	// initial address resolution
-	sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-	
-	int n;
-	
-	recvfrom(sockfd, &n, sizeof(int), 0, (struct sockaddr *)NULL, NULL);
-	
-	printf("\n");
 
-	int ack, idx = 0;
-	
-	while(idx < n) {
-		recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
-		
-		if (!recvP.resend)
-			++idx;
-		
-		printf("Packet msg: %s\n",recvP.msg);
-			
-		ack = recvP.idx + 1;
-		
-		sleep(1);
-		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-		
-	}
-	
+	chatLoop(sockfd, servaddr);
+
 	close(sockfd);
 
 	return 0;

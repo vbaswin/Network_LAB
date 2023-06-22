@@ -1,11 +1,3 @@
-/*
-	more on fd_set -> info.c
-	more on select -> info2.c
-*/
-
-
-// server
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -38,15 +30,18 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	while (1) {
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 
-		if (select_result) {
+		if (select_result == -1) {
+			perror("Select");
+			exit(EXIT_FAILURE);
+		} else if (select_result) {
 			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
 			if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
-				printf("Server Exiting...");
+				printf("\nServer Exiting...");
 				break;
 			}
 			printf("\tmsg from Client: %s\n", recvP.msg);
 		} else {
-			printf("Timeout\n");
+			printf("\nTimeout!!\n");
 			break;
 		}
 
@@ -59,7 +54,7 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 		sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 
 		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
-			printf("Server Exiting...");
+			printf("\nServer Exiting...");
 			break;
 		}
 	}

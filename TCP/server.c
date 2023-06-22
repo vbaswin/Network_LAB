@@ -29,22 +29,21 @@ void chatLoop(int connfd) {
 	while (1) {
 		select_result = select(connfd + 1, &read_fds, NULL, NULL, &timeout);
 
-		if (select_result) {
+		if (select_result == -1) {
+			perror("Select");
+			exit(EXIT_FAILURE);
+		} else if (select_result) {
 			recv(connfd, &recvP, sizeof(recvP), 0);
 			if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
-				printf("Server Exiting...");
+				printf("\nServer Exiting...");
 				break;
 			}
 			printf("\tmsg from Client: %s\n", recvP.msg);
 		} else {
-			printf("Timeout\n");
+			printf("\nTimeout!!. Exit out client to close socket\n");
 			break;
 		}
 
-		if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
-			printf("Server Exiting...");
-			break;
-		}
 		memset(sendP.msg, 0, sizeof(sendP.msg));
 
 		int n = strlen(recvP.msg);
@@ -54,7 +53,7 @@ void chatLoop(int connfd) {
 
 		send(connfd, &sendP, sizeof(sendP), 0);
 		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
-			printf("Server Exiting...");
+			printf("\nServer Exiting...");
 			break;
 		}
 	}
