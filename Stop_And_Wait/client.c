@@ -19,7 +19,7 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	Packets recvP;
 
 	struct timeval timeout;
-	timeout.tv_sec = 5;		// no of seconds for timeout(or wait)
+	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
 	fd_set read_fds;
@@ -36,40 +36,41 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
 
 	while (1) {
-		// select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 
-		/*
-			if (select_result == -1) {
-				perror("Select");
-				exit(EXIT_FAILURE);
-			} else if (select_result) {
-				*/
-		recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
-		ack = recvP.idx + 1;
+		if (select_result == -1) {
+			perror("Select");
+			exit(EXIT_FAILURE);
+		} else if (select_result) {
+			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
+			ack = recvP.idx + 1;
 
-		if (recvP.delay > 4) {
+			if (recvP.delay > 5) {
+				// recvP.delay = 0;
+				continue;
+			}
+
+			// sleep(recvP.delay);
+			printf("Packet [ %d ] received. Msg: %s\n", recvP.idx + 1, recvP.msg);
+			printf("Delay: %d\n", recvP.delay);
+
+			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+			printf("Ack send: %d\n\n", ack);
+
+			if (recvP.last) {
+				printf("\nClient Exiting...\n");
+				break;
+			}
+
+			/// I really think there is some time synchronication
+			// problem here ;)))))))))))))))))))))))))))))))))))
+
+		} else {
+			printf("\nTimeout!!. Resend again...\n");
+			// sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+			// printf("Ack send: %d\n\n", ack);
 			continue;
 		}
-
-		// sleep(recvP.delay);
-		printf("Packet [ %d ] received. Msg: %s\n", recvP.idx + 1, recvP.msg);
-
-		sleep(2);
-		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-		printf("Ack send: %d\n\n", ack);
-
-		if (recvP.last) {
-			printf("\nClient Exiting...\n");
-			break;
-		}
-		/*
-	} else {
-		printf("\nTimeout!!. Resend again...\n");
-		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-		printf("Ack send: %d\n\n", ack);
-		continue;
-	}
-	*/
 
 		// sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
 		// printf("Ack send: %d\n\n", ack);

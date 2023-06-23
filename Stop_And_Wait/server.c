@@ -16,7 +16,7 @@ typedef struct packets {
 
 void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	struct timeval timeout;
-	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
+	timeout.tv_sec = 7;		// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
 	fd_set read_fds;
@@ -57,9 +57,11 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 
 	int i = 0;
 	while (i < n) {
+		sleep(2);
 		sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 		printf("\n\nPacket [ %d ] sent\n", i + 1);
 		++i;
+
 
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 		printf("Select result: %d\n", select_result);
@@ -77,9 +79,9 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 			// }
 		} else {
 			printf("Timeout!!. Resending...\n");
-			printf("chumma: %s\n", sendP[--i].msg);
-			sendP[i].delay = 0;
-			printf("i::%d", i);
+			// printf("chumma: %s\n", sendP[--i].msg);
+			sendP[--i].delay = 0;
+			// printf("i::%d", i);
 		}
 	}
 	printf("\nServer Exiting...\n");
