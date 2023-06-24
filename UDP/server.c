@@ -34,11 +34,10 @@ void recvTime(int sockfd, struct sockaddr_in cliaddr) {
 		perror("Setsockopt failed");
 		return;
 	}
-	if (recv(sockfd, &recvP, sizeof(recvP), 0) == -1) {
-		printf("Timeout!!. Resend again...\n");
-	}
 
-	recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
+	if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len) == -1)
+		printf("Timeout!!. Resend again...\n");
+
 	printf("\tTime from Client: %s\n", recvP.msg);
 }
 
@@ -60,12 +59,6 @@ int main() {
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(8080);
-
-	int reuse = 1;
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-		perror("Failed to set SO_REUSEADDR");
-		exit(EXIT_FAILURE);
-	}
 
 	// bind
 	if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1) {

@@ -1,13 +1,3 @@
-/*
-					FD_ISSET
-
-	in scenarios where you are monitoring a single file descriptor and select returns 1, you can omit the
-	use of FD_ISSET and directly proceed with the necessary actions for the known active file descriptor.
-	The use of FD_ISSET is primarily beneficial when monitoring multiple file descriptors to identify which
-	specific file descriptors have activity.
-*/
-
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -26,15 +16,15 @@ typedef struct packets {
 
 void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	struct timeval timeout;
-	timeout.tv_sec = 5;		// no of seconds for timeout(or wait)
-	timeout.tv_usec = 0;	// no of microseconds for timeout
-
-	fd_set read_fds;
-	FD_ZERO(&read_fds);
-	FD_SET(sockfd, &read_fds);
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
 
 	socklen_t len = sizeof(cliaddr);
 
+	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+		perror("Setsockopt failed");
+		return;
+	}
 
 	char addRes[100];
 	// initial address resolution
