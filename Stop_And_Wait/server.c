@@ -62,6 +62,12 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 			sendP[--i].delay = 3;
 			continue;
 		}
+
+		if (ack != i) {
+			printf("\tInvalid Ack. Resending again...\n");
+			--i;
+			continue;
+		}
 		printf("\tAck received: %d\n", ack);
 	}
 	printf("\nServer Exiting...\n");

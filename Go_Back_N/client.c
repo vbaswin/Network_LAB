@@ -39,7 +39,6 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 
 		ack = recvP.idx + 1;
 
-
 		if (recvP.delay > 5) {
 			continue;
 		}
