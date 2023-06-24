@@ -54,7 +54,6 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	while (i < n) {
 		sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 		printf("Packet [ %d ] sent", i + 1);
-		fflush(stdout);
 		++i;
 
 		if (recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len) == -1) {
