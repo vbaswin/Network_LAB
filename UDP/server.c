@@ -6,6 +6,9 @@
 	In UDP, the SO_REUSEADDR option allows multiple sockets to bind to the same address and port combination.
 	This can be useful in scenarios where you have multiple UDP sockets and you want to receive datagrams on the
 	same address and port from different processes or threads.
+
+	recvfrom is specifically designed for udp,
+	recv -> general purpose can be for both tcp and udp
 */
 
 #include <arpa/inet.h>
@@ -29,6 +32,9 @@ void recvTime(int sockfd, struct sockaddr_in cliaddr) {
 
 	Packets recvP, sendP;
 	socklen_t len = sizeof(cliaddr);
+
+	memset(recvP.msg, 0, sizeof(recvP.msg));
+	memset(sendP.msg, 0, sizeof(sendP.msg));
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
 		perror("Setsockopt failed");

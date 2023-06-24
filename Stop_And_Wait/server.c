@@ -63,6 +63,13 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 
 
 		printf("Waiting for Ack...\n");
+
+		if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len) == -1)
+			printf("Timeout!!. Resend again...\n");
+
+		if (recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len) == -1)
+			;
+
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 		printf("Select result: %d\n", select_result);
 
@@ -76,7 +83,6 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 		}
 
 		if (FD_ISSET(sockfd, &read_fds)) {
-			recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len);
 			printf("Ack: %d\n", ack);
 			// if (ack != i) {
 			// 	--i;
