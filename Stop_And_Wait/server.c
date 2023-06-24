@@ -27,7 +27,6 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	}
 
 	char addRes[100];
-	// initial address resolution
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)&cliaddr, &len);
 
 	int n;
@@ -44,88 +43,27 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	}
 	sendP[n - 1].last = 1;
 
-	// printf("\n");
-	// for (int i = 0; i < n; ++i) {
-	// 	printf("[ %d ]: %s %d %d\n", i + 1, sendP[i].msg, sendP[i].delay, sendP[i].last);
-	// }
 
 	strcpy(addRes, "Entering info");
 	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 
-	int select_result, ack;
-	printf("\n");
+	int ack;
+	printf("\n\n");
 
 	int i = 0;
 	while (i < n) {
 		sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-		printf("\n\nPacket [ %d ] sent\n", i + 1);
+		printf("Packet [ %d ] sent", i + 1);
 		++i;
 
-
-		printf("Waiting for Ack...\n");
-
-		if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len) == -1)
-			printf("Timeout!!. Resend again...\n");
-
-		if (recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len) == -1)
-			;
-
-		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
-		printf("Select result: %d\n", select_result);
-
-		if (select_result == -1) {
-			perror("Select");
-			exit(EXIT_FAILURE);
-		} else if (!select_result) {
-			printf("Timeout!!. Resending...\n");
-			sendP[--i].delay = 0;
+		if (recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len) == -1) {
+			printf("\tTimeout!!. Resending again...\n");
+			sendP[--i].delay = 3;
 			continue;
 		}
-
-		if (FD_ISSET(sockfd, &read_fds)) {
-			printf("Ack: %d\n", ack);
-			// if (ack != i) {
-			// 	--i;
-			// 	printf("Invalid Ack!!. Resending...");
-			// 	continue;
-		}
+		printf("\tAck received: %d\n", ack);
 	}
-
 	printf("\nServer Exiting...\n");
-
-	/*
-	while (1) {
-		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
-
-		if (select_result == -1) {
-			perror("Select");
-			exit(EXIT_FAILURE);
-		} else if (select_result) {
-			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
-			if (!strcmp(recvP.msg, "Exit") || !strcmp(recvP.msg, "exit")) {
-				printf("\nServer Exiting...");
-				break;
-			}
-			printf("\tmsg from Client: %s\n", recvP.msg);
-		} else {
-			printf("\nTimeout!!\n");
-			break;
-		}
-
-		memset(sendP.msg, 0, sizeof(sendP.msg));
-
-		printf("Enter msg: ");
-		scanf("%[^\n]s", sendP.msg);
-		getchar();
-
-		sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-
-		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
-			printf("\nServer Exiting...");
-			break;
-		}
-	}
-	*/
 }
 
 int main() {

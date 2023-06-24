@@ -22,12 +22,7 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
-	fd_set read_fds;
-	FD_ZERO(&read_fds);
-	FD_SET(sockfd, &read_fds);
-
-	int select_result, ack;
-	printf("\n");
+	int ack;
 
 	char addRes[] = "Initial Address resolution\n";
 	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
@@ -35,46 +30,32 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	// waiting till all the packet data are entered
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
 
+	printf("\n");
 	while (1) {
-		// sleep(2);
-		printf("Waiting for Packet...\n");
-		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
-
-		if (select_result == -1) {
-			perror("Select");
-			exit(EXIT_FAILURE);
-		} else if (!select_result) {
+		if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL) == -1) {
 			printf("\nTimeout!!. Resend again...\n");
 			continue;
 		}
 
-		if (FD_ISSET(sockfd, &read_fds)) {
-			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
-			ack = recvP.idx + 1;
+		ack = recvP.idx + 1;
 
 
-			if (recvP.delay > 5) {
-				printf("Delay: %d\n", recvP.delay);
-				// recvP.delay = 0;
-				continue;
-			}
+		if (recvP.delay > 5) {
+			continue;
+		}
+		sleep(recvP.delay);
+		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		printf("Packet [ %d ] received.\tAck sent: %d\tMsg: %s\n", recvP.idx + 1, ack, recvP.msg);
 
-			// sleep(recvP.delay);
-			printf("Packet [ %d ] received. Msg: %s\n", recvP.idx + 1, recvP.msg);
-			printf("Delay: %d\n", recvP.delay);
-
-			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-			printf("Ack send: %d\n\n", ack);
-
-			if (recvP.last) {
-				printf("\nClient Exiting...\n");
-				break;
-			}
+		if (recvP.last) {
+			printf("\nClient Exiting...\n");
+			break;
 		}
 	}
 }
 
 int main() {
+	freopen("c.in", "r", stdin);
 	int sockfd, status, connfd;
 	struct sockaddr_in servaddr, cliaddr;
 
