@@ -1,3 +1,13 @@
+/*
+					FD_ISSET
+
+	in scenarios where you are monitoring a single file descriptor and select returns 1, you can omit the
+	use of FD_ISSET and directly proceed with the necessary actions for the known active file descriptor.
+	The use of FD_ISSET is primarily beneficial when monitoring multiple file descriptors to identify which
+	specific file descriptors have activity.
+*/
+
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -16,7 +26,7 @@ typedef struct packets {
 
 void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	struct timeval timeout;
-	timeout.tv_sec = 7;		// no of seconds for timeout(or wait)
+	timeout.tv_sec = 5;		// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
 	fd_set read_fds;
@@ -57,33 +67,34 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 
 	int i = 0;
 	while (i < n) {
-		sleep(2);
 		sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 		printf("\n\nPacket [ %d ] sent\n", i + 1);
 		++i;
 
 
+		printf("Waiting for Ack...\n");
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 		printf("Select result: %d\n", select_result);
 
 		if (select_result == -1) {
 			perror("Select");
 			exit(EXIT_FAILURE);
-		} else if (select_result) {
+		} else if (!select_result) {
+			printf("Timeout!!. Resending...\n");
+			sendP[--i].delay = 0;
+			continue;
+		}
+
+		if (FD_ISSET(sockfd, &read_fds)) {
 			recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len);
 			printf("Ack: %d\n", ack);
 			// if (ack != i) {
 			// 	--i;
 			// 	printf("Invalid Ack!!. Resending...");
 			// 	continue;
-			// }
-		} else {
-			printf("Timeout!!. Resending...\n");
-			// printf("chumma: %s\n", sendP[--i].msg);
-			sendP[--i].delay = 0;
-			// printf("i::%d", i);
 		}
 	}
+
 	printf("\nServer Exiting...\n");
 
 	/*

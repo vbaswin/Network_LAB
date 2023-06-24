@@ -1,10 +1,12 @@
 /*
-	more on fd_set -> info.c
-	more on select -> info2.c
+	In UDP (User Datagram Protocol), the SO_REUSEADDR socket option can also be used to enable address reuse,
+	just like in TCP. However, the implications and benefits of using SO_REUSEADDR in UDP are slightly different
+	compared to TCP.
+
+	In UDP, the SO_REUSEADDR option allows multiple sockets to bind to the same address and port combination.
+	This can be useful in scenarios where you have multiple UDP sockets and you want to receive datagrams on the
+	same address and port from different processes or threads.
 */
-
-
-// server
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -22,24 +24,22 @@ typedef struct packets {
 
 void recvTime(int sockfd, struct sockaddr_in cliaddr) {
 	struct timeval timeout;
-	timeout.tv_sec = 10;	// no of seconds for timeout(or wait)
+	timeout.tv_sec = 5;		// no of seconds for timeout(or wait)
 	timeout.tv_usec = 0;	// no of microseconds for timeout
 
-	fd_set read_fds;
-	FD_ZERO(&read_fds);
-	FD_SET(sockfd, &read_fds);
-
 	Packets recvP, sendP;
-	int select_result;
 	socklen_t len = sizeof(cliaddr);
 
-	select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
+	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+		perror("Setsockopt failed");
+		return;
+	}
+	if (recv(sockfd, &recvP, sizeof(recvP), 0) == -1) {
+		printf("Timeout!!. Resend again...\n");
+	}
 
-	if (select_result) {
-		recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
-		printf("\tTime from Client: %s\n", recvP.msg);
-	} else
-		printf("Timeout\n");
+	recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len);
+	printf("\tTime from Client: %s\n", recvP.msg);
 }
 
 int main() {
@@ -60,6 +60,12 @@ int main() {
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(8080);
+
+	int reuse = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+		perror("Failed to set SO_REUSEADDR");
+		exit(EXIT_FAILURE);
+	}
 
 	// bind
 	if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1) {

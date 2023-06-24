@@ -36,16 +36,25 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
 
 	while (1) {
+		// sleep(2);
+		printf("Waiting for Packet...\n");
 		select_result = select(sockfd + 1, &read_fds, NULL, NULL, &timeout);
 
 		if (select_result == -1) {
 			perror("Select");
 			exit(EXIT_FAILURE);
-		} else if (select_result) {
+		} else if (!select_result) {
+			printf("\nTimeout!!. Resend again...\n");
+			continue;
+		}
+
+		if (FD_ISSET(sockfd, &read_fds)) {
 			recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL);
 			ack = recvP.idx + 1;
 
+
 			if (recvP.delay > 5) {
+				printf("Delay: %d\n", recvP.delay);
 				// recvP.delay = 0;
 				continue;
 			}
@@ -61,19 +70,7 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 				printf("\nClient Exiting...\n");
 				break;
 			}
-
-			/// I really think there is some time synchronication
-			// problem here ;)))))))))))))))))))))))))))))))))))
-
-		} else {
-			printf("\nTimeout!!. Resend again...\n");
-			// sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-			// printf("Ack send: %d\n\n", ack);
-			continue;
 		}
-
-		// sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-		// printf("Ack send: %d\n\n", ack);
 	}
 }
 
