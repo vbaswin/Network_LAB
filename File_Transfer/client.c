@@ -28,8 +28,11 @@ void chatLoop(int sockfd) {
 		return;
 	}
 
+	pid_t server_pid = 0;
+	recv(sockfd, &server_pid, sizeof(server_pid), 0);
+
 	printf("\n");
-	char file_name[200], exist_msg[100], new_file_name[200];
+	char file_name[200], exist_msg[100], new_file_name[200], copy_file_name[200];
 	while (1) {
 		printf("Enter file name: ");
 		scanf("%[^\n]s", file_name);
@@ -40,13 +43,15 @@ void chatLoop(int sockfd) {
 			break;
 	}
 
-	for (int i = 0; i < strlen(file_name) && file_name[i] != '.'; ++i)
+	int i;
+	for (i = 0; i < strlen(file_name) && file_name[i] != '.'; ++i)
 		new_file_name[i] = file_name[i];
 
+	new_file_name[i] = 0;
 	sprintf(new_file_name, "%s_download.txt", new_file_name);
 
-	printf("\nDownloading file %s\n", file_name);
-	FILE *fp = fopen(new_file_name, "w");
+	printf("\nDownloading file %s from server pid: %d\n", file_name, server_pid);
+	FILE *fp = fopen(new_file_name, "w+");
 
 	char line[200];
 	while (1) {

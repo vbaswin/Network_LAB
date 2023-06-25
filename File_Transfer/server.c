@@ -25,6 +25,9 @@ void chatLoop(int connfd) {
 		return;
 	}
 
+	pid_t pid = getpid();
+	send(connfd, &pid, sizeof(pid), 0);
+
 	printf("\n");
 	char file_name[200], exist_msg[] = "exists", not_exist_msg[] = "nexists";
 	while (1) {
@@ -42,10 +45,12 @@ void chatLoop(int connfd) {
 			send(connfd, not_exist_msg, sizeof(not_exist_msg), 0);
 		}
 	}
+
 	printf("\nSending file %s\n", file_name);
 
-	FILE *fp = fopen(file_name, "r");
+	FILE *fp = fopen(file_name, "r+");
 	char line[200], end_of_line[] = "EOF";
+
 	while (fgets(line, sizeof(line), fp)) {
 		send(connfd, line, sizeof(line), 0);
 	}

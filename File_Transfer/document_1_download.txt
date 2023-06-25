@@ -1,7 +1,7 @@
-This is a document created to be used 
+This is a document created by aswin 
+in favour of gta4
 
-as a purpose to test file transfer using 
-socket programming 
+build on 2008 still being played 
+without any particular reason 
 
-Hope it works fine. 
-Let's see!
+by some beautiful persons
