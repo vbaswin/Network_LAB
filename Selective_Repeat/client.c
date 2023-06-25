@@ -17,14 +17,9 @@ typedef struct packets {
 } Packets;
 
 void chatLoop(int sockfd, struct sockaddr_in servaddr) {
-	Packets recvP;
-
 	struct timeval timeout, no_timeout;
 	timeout.tv_sec = 10;
 	timeout.tv_usec = 0;
-
-	no_timeout.tv_sec = 0;
-	no_timeout.tv_usec = 22;
 
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
@@ -36,59 +31,49 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
 
 	int w_sz;
-
 	// waiting till all the packet data are entered
 	recvfrom(sockfd, &w_sz, sizeof(w_sz), 0, (struct sockaddr *)NULL, NULL);
 
+	Packets recvP[w_sz];
+
 	printf("\n");
-	int ack = 0;
+	int ack = 0, idx = 0, pack_recv_idx = 0, start_window = 0, last_set = 0;
 	while (1) {
-		if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL) == -1) {
+		if (pack_recv_idx == w_sz) {
+			if (last_set) {
+				printf("\nClient Exiting...\n");
+				break;
+			}
+			// printf("Next set received\n");
+			start_window += w_sz;
+			pack_recv_idx = 0;
+			continue;
+		}
+
+		if (recvfrom(sockfd, &recvP[pack_recv_idx], sizeof(recvP[pack_recv_idx]), 0, (struct sockaddr *)NULL, NULL) == -1) {
 			printf("\nTimeout!!\n");
 			continue;
 		}
 
-		if (recvP.delay > 5) {
-			// reduced waiting time of recvfrom to 22 micro sec
-			// cannot to 0 -> blocks till received ;) <==
-			if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &no_timeout, sizeof(no_timeout)) < 0) {
-				perror("Setsockopt failed");
-				return;
-			}
-			// to make recvfrom non-blocking <===
-			// maybe difficult to remember the syntax so above could be better
-			// int flags = fcntl(sockfd, F_GETFL, 0);
-			// fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-
-			// to consume the received packet buffer
-			while (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL) > 0)
-				;
-
-			// to make recvfrom blocking <====
-			// flags = fcntl(sockfd, F_GETFL, 0);
-			// fcntl(sockfd, F_SETFL, flags & (~O_NONBLOCK));
-
-			// setting the waiting time of recvfrom back to 5 sec
-			setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+		if (recvP[pack_recv_idx].delay > 5) {
 			continue;
 		}
 
-		// out of packets may not always occur
-		if (recvP.idx != ack) {
-			printf("Out of order packet received!!\n");
-			sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		idx = recvP[pack_recv_idx].idx;
+		if (idx > start_window + w_sz - 1 || idx < start_window) {
+			printf("start: %d idx: %d\n", start_window, idx);
+			printf("Out of set packet received!!\n");
 			continue;
 		}
-		ack = recvP.idx + 1;
+		ack = recvP[pack_recv_idx].idx + 1;
 
-		sleep(recvP.delay);
+		sleep(recvP[pack_recv_idx].delay);
 		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-		printf("Packet [ %d ] received\tAck sent: %d\tMsg: %s\n", recvP.idx + 1, ack, recvP.msg);
+		printf("Packet [ %d ] received\tAck sent: %d\tMsg: %s\n", recvP[pack_recv_idx].idx + 1, ack, recvP[pack_recv_idx].msg);
 
-		if (recvP.last) {
-			printf("\nClient Exiting...\n");
-			break;
-		}
+		if (recvP[pack_recv_idx].last)
+			last_set = 1;
+		++pack_recv_idx;
 	}
 }
 

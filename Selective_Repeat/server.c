@@ -63,50 +63,52 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 
 	sendto(sockfd, &w_sz, sizeof(w_sz), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 
-
 	int ack;
 	printf("\n\n");
 
-	int i = 0, j = 0;
+	int i = 0;
 
-	for (int k = 0; k < w_sz; ++k, ++i) {
-		sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-		printf("Packet [ %d ] sent\n", i + 1);
-		fflush(stdout);
-	}
-	while (j < n) {
+	int all_ack_received = 1, ack_received[n];
+	// don't forget(sizeof(ack_received))
+	memset(ack_received, 0, sizeof(ack_received));	  // info.c
+
+	while (i < n || !all_ack_received) {
+		if (all_ack_received && i < n) {
+			for (int k = 0; k < w_sz; ++k, ++i) {
+				sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
+				printf("Packet [ %d ] sent\n", i + 1);
+				fflush(stdout);
+			}
+			memset(ack_received, 0, sizeof(ack_received));	  // info.c
+			all_ack_received = 0;
+			continue;
+		}
+
 		if (recvfrom(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)&cliaddr, &len) == -1) {
-			printf("\tTimeout!!. Resending again...\n");
-			i = j;
-			sendP[i].delay = 2;
-			for (int k = 0; k < w_sz && i < n; ++k, ++i) {
-				sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-				printf("Packet [ %d ] sent\n", i + 1);
-				fflush(stdout);
-			}
+			int m;
+			// checking which all packets didn't receive ack
+			for (m = i - w_sz; m < i && ack_received[m]; ++m)
+				;
+
+			printf("\tTimeout!!. Resending again... pack: %d\n", m + 1);
+			sendP[m].delay = 2;
+			sendto(sockfd, &sendP[m], sizeof(sendP[m]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 			continue;
 		}
 
-		if (ack != (j + 1)) {
-			printf("\tInvalid Ack. Resending again...\n");
-			i = j;
-
-			for (int k = 0; k < w_sz && i < n; ++k, ++i) {
-				sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-				printf("Packet [ %d ] sent\n", i + 1);
-				fflush(stdout);
-			}
+		if (ack > i || ack < i - w_sz) {
+			printf("\tInvalid Ack. Received!! Ack: %d i: %d\n", ack, i);
 			continue;
 		}
-		printf("\tAck received: %d\n", ack);
-		++j;
+		printf("\tAck received: %d\t\n", ack);
+		ack_received[ack - 1] = 1;
 
-		if (i < n) {
-			sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
-			printf("Packet [ %d ] sent\n", i + 1);
-			fflush(stdout);
-			++i;
-		}
+		// checking if all pack of this set received
+		int x;
+		for (x = i - w_sz; x < i && ack_received[x]; ++x)
+			;
+		if (x == i)
+			all_ack_received = 1;
 	}
 	printf("\nServer Exiting...\n");
 }
