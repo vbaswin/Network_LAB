@@ -16,18 +16,24 @@ typedef struct packets {
 
 void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	struct timeval timeout;
-	timeout.tv_sec = 5;
+	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
 	socklen_t len = sizeof(cliaddr);
 
+	// making recvfrom blocking - to prevent invalid address resoultion -> due to timeout
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
 		perror("Setsockopt failed");
 		return;
 	}
 
 	char addRes[100];
+	// initial address resolution
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)&cliaddr, &len);
+
+	// setting to real timeout 5s
+	timeout.tv_sec = 5;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
 	int n;
 	printf("\nEnter no of packets: ");

@@ -44,7 +44,7 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 		}
 		sleep(recvP.delay);
 		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
-		printf("Packet [ %d ] received.\tAck sent: %d\tMsg: %s\n", recvP.idx + 1, ack, recvP.msg);
+		printf("Packet [ %d ] received\tAck sent: %d\tMsg: %s\n", recvP.idx + 1, ack, recvP.msg);
 
 		if (recvP.last) {
 			printf("\nClient Exiting...\n");
