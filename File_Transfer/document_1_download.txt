@@ -1,0 +1,7 @@
+This is a document created to be used 
+
+as a purpose to test file transfer using 
+socket programming 
+
+Hope it works fine. 
+Let's see!
