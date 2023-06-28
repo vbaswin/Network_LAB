@@ -18,23 +18,27 @@ void initialize_adj_matrix(int n, int adj_matrix[][n]) {
 			adj_matrix[i][j] = -1;
 }
 
-void initialize_spt(int n, int source, shortest_path_tree spt[n]) {
+void initialize_spt(int n, shortest_path_tree spt[][n]) {
 	for (int i = 0; i < n; ++i) {
-		if (i == source)
-			spt[i].cost = 0;
-		else
-			spt[i].cost = -1;
+		for (int j = 0; j < n; ++j) {
+			if (j == i)
+				spt[i][j].cost = 0;
+			else
+				spt[i][j].cost = -1;
 
-		spt[i].node = i;
-		spt[i].prev_node = -1;
+			spt[i][j].node = j;
+			spt[i][j].prev_node = -1;
+		}
 	}
 }
 
-void initialize_routing_table(int n, routing_table rt[]) {
+void initialize_routing_table(int n, routing_table rt[][n]) {
 	for (int i = 0; i < n; ++i) {
-		rt[i].destination = i;
-		rt[i].next_hop = -1;
-		rt[i].cost = -1;
+		for (int j = 0; j < n; ++j) {
+			rt[i][j].destination = j;
+			rt[i][j].next_hop = -1;
+			rt[i][j].cost = -1;
+		}
 	}
 }
 
@@ -53,16 +57,22 @@ void display_adj_matrix(int n, int adj_matrix[][n]) {
 	}
 }
 
-void dispaly_spt(int n, shortest_path_tree spt[]) {
+void dispaly_spt(int n, shortest_path_tree spt[][n]) {
 	printf("\n\n");
-	for (int i = 0; i < n; ++i)
-		printf("%d\t%d\t%d\n\n", spt[i].node, spt[i].cost, spt[i].prev_node);
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j)
+			printf("%d\t%d\t%d\n\n", spt[i][j].node, spt[i][j].cost, spt[i][j].prev_node);
+		printf("\n\n");
+	}
 }
 
-void dispaly_rt(int n, routing_table rt[]) {
+void dispaly_rt(int n, routing_table rt[][n]) {
 	printf("\n\n");
-	for (int i = 0; i < n; ++i)
-		printf("%d\t%d\t%d\n\n", rt[i].destination, rt[i].cost, rt[i].next_hop);
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j)
+			printf("%d\t%d\t%d\n\n", rt[i][j].destination, rt[i][j].cost, rt[i][j].next_hop);
+		printf("\n\n");
+	}
 }
 
 void add_edge_adj_matrix(int n, int adj_matrix[][n]) {
@@ -126,6 +136,16 @@ void create_routing_table(int n, int source, routing_table rt[], shortest_path_t
 	}
 }
 
+void dijstra_all_sources(int n, int adj_matrix[][n], shortest_path_tree spt[][n]) {
+	for (int i = 0; i < n; ++i)
+		dijstra(n, adj_matrix, i, spt[i]);
+}
+
+void create_routing_table_all_sources(int n, routing_table rt[][n], shortest_path_tree spt[][n]) {
+	for (int i = 0; i < n; ++i)
+		create_routing_table(n, i, rt[i], spt[i]);
+}
+
 int main() {
 	freopen("c.in", "r", stdin);
 	int n;
@@ -136,16 +156,18 @@ int main() {
 	add_edge_adj_matrix(n, adj_matrix);
 	display_adj_matrix(n, adj_matrix);
 
-	shortest_path_tree spt[n];	  // output of dijstras algorithm
-	initialize_spt(n, 0, spt);
+	shortest_path_tree spt[n][n];	 // output of dijstras algorithm
+	initialize_spt(n, spt);
 	// dispaly_spt(n, spt);
-	dijstra(n, adj_matrix, 0, spt);
+	dijstra_all_sources(n, adj_matrix, spt);
+	printf("\nShortest Path Trees\n\n");
 	dispaly_spt(n, spt);
 
-	routing_table rt[n];
+	routing_table rt[n][n];
 	initialize_routing_table(n, rt);
 	// dispaly_rt(n, rt);
-	create_routing_table(n, 0, rt, spt);
+	create_routing_table_all_sources(n, rt, spt);
+	printf("\nRouting Tables\n\n");
 	dispaly_rt(n, rt);
 
 	return 0;
