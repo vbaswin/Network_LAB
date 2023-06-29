@@ -1,11 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct packets {
-	char msg[200];
-	int idx;
-} Packets;
-
 typedef struct NODE {
 	int data;
 	struct NODE *next;

@@ -11,20 +11,80 @@
 typedef struct packets {
 	char msg[200];
 	int idx;
+	int delay;
+	int last;
 } Packets;
 
-void sendTime(int sockfd, struct sockaddr_in servaddr) {
-	Packets sendP;
+void chatLoop(int sockfd, struct sockaddr_in servaddr) {
+	Packets recvP;
 
-	time_t t;
-	time(&t);
-	char buff[20];
-	strcpy(sendP.msg, ctime(&t));
+	struct timeval timeout;
+	timeout.tv_sec = 0;		// no of seconds for timeout(or wait)
+	timeout.tv_usec = 1;	// no of microseconds for timeout
 
-	sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+	int ack;
+
+	char addRes[] = "Initial Address resolution\n";
+	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+
+	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+		perror("Setsockopt failed");
+		return;
+	}
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 9.7 * 100000000;	 // Convert milliseconds to nanoseconds
+
+	nanosleep(&ts, NULL);
+	int pack, speed;
+	printf("\n");
+	while (1) {
+		speed = 0;
+		while (recvfrom(sockfd, &pack, sizeof(pack), 0, (struct sockaddr *)NULL, NULL) > 0) {
+			if (pack == -1)
+				break;
+			printf("packet [ %d ] received!!\n", pack);
+			++speed;
+		}
+		if (pack == -1) {
+			if (speed > 0)
+				printf("Speed: %d p/s\n\n", speed);
+			break;
+		}
+		printf("Speed: %d p/s\n\n", speed);
+		nanosleep(&ts, NULL);
+	}
+
+	/*
+	// waiting till all the packet data are entered
+	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
+
+	printf("\n");
+	while (1) {
+		if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL) == -1) {
+			printf("\nTimeout!!. Resend again...\n");
+			continue;
+		}
+
+		ack = recvP.idx + 1;
+
+		if (recvP.delay > 5) {
+			continue;
+		}
+		sleep(recvP.delay);
+		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+		printf("Packet [ %d ] received\tAck sent: %d\tMsg: %s\n", recvP.idx + 1, ack, recvP.msg);
+
+		if (recvP.last) {
+			printf("\nClient Exiting...\n");
+			break;
+		}
+	}
+	*/
 }
 
 int main() {
+	freopen("c.in", "r", stdin);
 	int sockfd, status, connfd;
 	struct sockaddr_in servaddr, cliaddr;
 
@@ -48,7 +108,7 @@ int main() {
 	} else
 		printf("Connection successful\n");
 
-	sendTime(sockfd, servaddr);
+	chatLoop(sockfd, servaddr);
 
 	close(sockfd);
 
