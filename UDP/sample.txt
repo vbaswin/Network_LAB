@@ -1,0 +1,18 @@
+// Server
+
+Socket Creation Successfull
+Sockid: 3
+Bind Successfull
+
+Server Exiting...
+
+
+// Client  
+
+Socket Creation Successfull
+Sockid: 3
+Connection successful
+
+Time from Server: Thu Jun 29 20:50:51 2023
+
+Client Exiting...

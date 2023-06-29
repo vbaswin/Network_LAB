@@ -1,0 +1,36 @@
+// Server
+
+Socket Creation Successfull
+Sockid: 3
+Bind Successfull
+Listening...
+Accepting...
+
+video_1.txt	File exists
+
+Sending file video_1.txt
+File send successfully!!
+
+
+// Client 
+
+Socket Creation Successfull
+Sockid: 3
+Connection successful
+
+Enter file name: video_1.txt
+
+Downloading file video_1.txt from server pid: 12844
+File downloaded successfully!!
+Saved as video_1_download.txt
+
+
+// video_1_download.txt
+
+Video taken by a high res camera
+
+By a professional cinematographer and a 
+btech student
+
+Will be featured in the next series to
+come in famous OTT

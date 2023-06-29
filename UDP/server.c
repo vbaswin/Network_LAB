@@ -18,11 +18,11 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 typedef struct packets {
 	char msg[200];
-	int idx;
 } Packets;
 
 void recvTime(int sockfd, struct sockaddr_in cliaddr) {
@@ -44,7 +44,13 @@ void recvTime(int sockfd, struct sockaddr_in cliaddr) {
 	if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)&cliaddr, &len) == -1)
 		printf("Timeout!!. Resend again...\n");
 
-	printf("\tTime from Client: %s\n", recvP.msg);
+	time_t t;
+	time(&t);
+	char buff[20];
+	strcpy(sendP.msg, ctime(&t));
+
+	sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
+	printf("\nServer Exiting...\n");
 }
 
 int main() {

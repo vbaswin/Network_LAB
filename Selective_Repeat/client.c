@@ -30,20 +30,17 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	char addRes[] = "Initial Address resolution\n";
 	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
 
-	int w_sz;
+	int w_sz, n;
 	// waiting till all the packet data are entered
 	recvfrom(sockfd, &w_sz, sizeof(w_sz), 0, (struct sockaddr *)NULL, NULL);
+	recvfrom(sockfd, &n, sizeof(n), 0, (struct sockaddr *)NULL, NULL);
 
 	Packets recvP[w_sz];
 
 	printf("\n");
 	int ack = 0, idx = 0, pack_recv_idx = 0, start_window = 0, last_set = 0;
-	while (1) {
+	for (int i = 0; i < n;) {
 		if (pack_recv_idx == w_sz) {
-			if (last_set) {
-				printf("\nClient Exiting...\n");
-				break;
-			}
 			// printf("Next set received\n");
 			start_window += w_sz;
 			pack_recv_idx = 0;
@@ -70,11 +67,11 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 		sleep(recvP[pack_recv_idx].delay);
 		sendto(sockfd, &ack, sizeof(ack), 0, (struct sockaddr *)NULL, sizeof(servaddr));
 		printf("Packet [ %d ] received\tAck sent: %d\tMsg: %s\n", recvP[pack_recv_idx].idx + 1, ack, recvP[pack_recv_idx].msg);
-
-		if (recvP[pack_recv_idx].last)
-			last_set = 1;
 		++pack_recv_idx;
+		++i;
 	}
+
+	printf("\nClient Exiting...\n");
 }
 
 int main() {

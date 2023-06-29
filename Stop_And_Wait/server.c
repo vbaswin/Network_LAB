@@ -80,7 +80,7 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 }
 
 int main() {
-	freopen("c.in", "r", stdin);
+	// freopen("c.in", "r", stdin);
 	int sockfd, status, connfd;
 	struct sockaddr_in servaddr, cliaddr;
 

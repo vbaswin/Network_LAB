@@ -43,7 +43,7 @@ void initialize_routing_table(int n, routing_table rt[][n]) {
 }
 
 void display_adj_matrix(int n, int adj_matrix[][n]) {
-	printf("\n\n");
+	printf("\n\n\nAdjacent Matrix\n\n\n\n");
 	int val;
 	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j < n; ++j) {
@@ -58,7 +58,7 @@ void display_adj_matrix(int n, int adj_matrix[][n]) {
 }
 
 void dispaly_spt(int n, shortest_path_tree spt[][n]) {
-	printf("\n\n");
+	printf("\n\n\nShortest Path Trees\n\n\n\n");
 	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j < n; ++j)
 			printf("%d\t%d\t%d\n\n", spt[i][j].node, spt[i][j].cost, spt[i][j].prev_node);
@@ -67,7 +67,7 @@ void dispaly_spt(int n, shortest_path_tree spt[][n]) {
 }
 
 void dispaly_rt(int n, routing_table rt[][n]) {
-	printf("\n\n");
+	printf("\n\nRouting Tables\n\n\n\n");
 	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j < n; ++j)
 			printf("%d\t%d\t%d\n\n", rt[i][j].destination, rt[i][j].cost, rt[i][j].next_hop);
@@ -79,8 +79,9 @@ void add_edge_adj_matrix(int n, int adj_matrix[][n]) {
 	int x, y, cost, entries;
 	printf("Enter no of entries to add: ");
 	scanf("%d", &entries);
+	printf("Enter\n");
 	for (int i = 0; i < entries; ++i) {
-		printf("Enter row, col and cost: ");
+		printf("row col cost: ");
 		scanf("%d %d %d", &x, &y, &cost);
 		adj_matrix[x][y] = cost;
 	}
@@ -160,14 +161,12 @@ int main() {
 	initialize_spt(n, spt);
 	// dispaly_spt(n, spt);
 	dijstra_all_sources(n, adj_matrix, spt);
-	printf("\nShortest Path Trees\n\n");
 	dispaly_spt(n, spt);
 
 	routing_table rt[n][n];
 	initialize_routing_table(n, rt);
 	// dispaly_rt(n, rt);
 	create_routing_table_all_sources(n, rt, spt);
-	printf("\nRouting Tables\n\n");
 	dispaly_rt(n, rt);
 
 	return 0;

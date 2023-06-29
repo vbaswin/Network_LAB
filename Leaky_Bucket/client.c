@@ -20,21 +20,26 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 
 	struct timeval timeout;
 	timeout.tv_sec = 0;		// no of seconds for timeout(or wait)
-	timeout.tv_usec = 1;	// no of microseconds for timeout
+	timeout.tv_usec = 0;	// no of microseconds for timeout
 
 	int ack, pack;
 
-	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-		perror("Setsockopt failed");
-		return;
-	}
-	while (recvfrom(sockfd, &pack, sizeof(pack), 0, (struct sockaddr *)NULL, NULL) > 0)
-		;
 
 	char addRes[] = "Initial Address resolution\n";
 	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
 
-	struct timespec ts, ts_start;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+	// wait till all infos are entered
+	recvfrom(sockfd, &addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, NULL);
+
+	timeout.tv_sec = 0;		// no of seconds for timeout(or wait)
+	timeout.tv_usec = 1;	// no of microseconds for timeout
+
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+	struct timespec ts,
+		ts_start;
 	ts.tv_sec = 0;
 	ts.tv_nsec = 9.7 * 100000000;	 // Convert milliseconds to nanoseconds
 
@@ -88,6 +93,8 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 		}
 	}
 	*/
+
+	printf("Client Exiting...\n");
 }
 
 int main() {

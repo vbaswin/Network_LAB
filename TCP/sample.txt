@@ -1,0 +1,31 @@
+// Server 
+
+Socket Creation Successfull
+Sockid: 3
+Bind Successfull
+Listening...
+Accepting...
+
+	msg: Programming in C
+	msg: Malayalam
+	msg: This is a long message
+Timeout!!. Resend again...
+
+Server Exiting... 
+
+
+// Client 
+
+Socket Creation Successfull
+Sockid: 3
+Connection successful
+
+Enter msg: Programming in C
+	msg: C ni gnimmargorP
+Enter msg: Malayalam
+	msg: malayalaM
+Enter msg: This is a long message
+	msg: egassem gnol a si sihT
+Enter msg: exit
+
+Client Exiting... 

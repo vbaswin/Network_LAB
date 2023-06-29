@@ -150,7 +150,7 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	socklen_t len = sizeof(cliaddr);
 
 	int max_send_speed, max_recv_speed, no_of_packets, bucket_size;
-	printf("Enter\nMax senders speed:");
+	printf("Enter\nMax senders speed: ");
 	scanf("%d", &max_send_speed);
 	printf("Max receivers speed: ");
 	scanf("%d", &max_recv_speed);
@@ -162,20 +162,13 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	int rand_val[100];
 	calc_rand(rand_val, max_send_speed);
 
-
-	// making recvfrom blocking - to prevent invalid address resoultion -> due to timeout
-	/*
-	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-		perror("Setsockopt failed");
-		return;
-	}
-	*/
-
 	printf("\n\n");
 
 	char addRes[100];
 	// initial address resolution
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)&cliaddr, &len);
+	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
+
 	pthread_mutex_init(&mutex, NULL);
 
 	pthread_t push_thread, send_thread;
@@ -266,6 +259,8 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	}
 	printf("\nServer Exiting...\n");
 	*/
+
+	printf("Server Exiting...\n");
 }
 
 int main() {

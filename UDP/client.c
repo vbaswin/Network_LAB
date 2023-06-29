@@ -7,23 +7,22 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
 
 typedef struct packets {
 	char msg[200];
-	int idx;
 } Packets;
 
 void sendTime(int sockfd, struct sockaddr_in servaddr) {
-	Packets sendP;
-
-	time_t t;
-	time(&t);
-	char buff[20];
-	strcpy(sendP.msg, ctime(&t));
+	Packets recvP, sendP;
+	strcpy(sendP.msg, "Address resolution");
 
 	sendto(sockfd, &sendP, sizeof(sendP), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+
+	if (recvfrom(sockfd, &recvP, sizeof(recvP), 0, (struct sockaddr *)NULL, NULL) == -1)
+		printf("Timeout!!. Resend again...\n");
+
+	printf("\nTime from Server: %s\nClient Exiting...\n", recvP.msg);
 }
 
 int main() {

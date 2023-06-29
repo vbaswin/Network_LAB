@@ -62,11 +62,12 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	}
 
 	sendto(sockfd, &w_sz, sizeof(w_sz), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
+	sendto(sockfd, &n, sizeof(n), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 
 	int ack;
 	printf("\n\n");
 
-	int i = 0;
+	int i = 0, j = -w_sz;
 
 	int all_ack_received = 1, ack_received[n];
 	// don't forget(sizeof(ack_received))
@@ -74,13 +75,14 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 
 	while (i < n || !all_ack_received) {
 		if (all_ack_received && i < n) {
-			for (int k = 0; k < w_sz; ++k, ++i) {
+			for (int k = 0; k < w_sz && i < n; ++k, ++i) {
 				sendto(sockfd, &sendP[i], sizeof(sendP[i]), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
 				printf("Packet [ %d ] sent\n", i + 1);
 				fflush(stdout);
 			}
 			memset(ack_received, 0, sizeof(ack_received));	  // info.c
 			all_ack_received = 0;
+			j += w_sz;
 			continue;
 		}
 
@@ -105,7 +107,7 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 
 		// checking if all pack of this set received
 		int x;
-		for (x = i - w_sz; x < i && ack_received[x]; ++x)
+		for (x = j; x < i && ack_received[x]; ++x)
 			;
 		if (x == i)
 			all_ack_received = 1;

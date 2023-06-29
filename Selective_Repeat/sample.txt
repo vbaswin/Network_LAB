@@ -1,0 +1,68 @@
+// Server 
+
+Socket Creation Successfull
+Sockid: 3
+Bind Successfull
+
+Enter no of packets: 10
+Enter predicted delay and packet msg
+[ 1 ]: 2 Programming 
+[ 2 ]: 6 is really  
+[ 3 ]: 3 a superb 
+[ 4 ]: 7 method of applying
+[ 5 ]: 4 what we have 
+[ 6 ]: 9 learnt, helps to 
+[ 7 ]: 8 better understand topics
+[ 8 ]: 1 and also helps in 
+[ 9 ]: 6 moulding our brain
+[ 10 ]: 3 to think like a machine
+
+Enter window size: 3
+
+Packet [ 1 ] sent
+Packet [ 2 ] sent
+Packet [ 3 ] sent
+	Ack received: 1	
+	Ack received: 3	
+	Timeout!!. Resending again... pack: 2
+	Ack received: 2	
+Packet [ 4 ] sent
+Packet [ 5 ] sent
+Packet [ 6 ] sent
+	Ack received: 5	
+	Timeout!!. Resending again... pack: 4
+	Ack received: 4	
+	Timeout!!. Resending again... pack: 6
+	Ack received: 6	
+Packet [ 7 ] sent
+Packet [ 8 ] sent
+Packet [ 9 ] sent
+	Ack received: 8	
+	Timeout!!. Resending again... pack: 7
+	Ack received: 7	
+	Timeout!!. Resending again... pack: 9
+	Ack received: 9	
+Packet [ 10 ] sent
+	Ack received: 10	
+
+Server Exiting...
+
+
+// Client 
+
+Socket Creation Successfull
+Sockid: 3
+Connection successful
+
+Packet [ 1 ] received	Ack sent: 1		Msg: Programming 
+Packet [ 3 ] received	Ack sent: 3		Msg: a superb 
+Packet [ 2 ] received	Ack sent: 2		Msg: is really  
+Packet [ 5 ] received	Ack sent: 5		Msg: what we have 
+Packet [ 4 ] received	Ack sent: 4		Msg: method of applying
+Packet [ 6 ] received	Ack sent: 6		Msg: learnt, helps to 
+Packet [ 8 ] received	Ack sent: 8		Msg: and also helps in 
+Packet [ 7 ] received	Ack sent: 7		Msg: better understand topics
+Packet [ 9 ] received	Ack sent: 9		Msg: moulding our brain
+Packet [ 10 ] received	Ack sent: 10	Msg: to think like a machine
+
+Client Exiting...

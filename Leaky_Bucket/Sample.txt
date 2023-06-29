@@ -1,0 +1,171 @@
+// Server with leaky bucket
+
+Socket Creation Successfull
+Sockid: 3
+Bind Successfull
+Enter
+Max senders speed: 10
+Max receivers speed: 3
+No of packets: 40
+Bucket_size: 15
+
+
+Packet [ 0 ] Reached Bucket
+
+Packet [ 1 ] Reached Bucket
+Packet [ 2 ] Reached Bucket
+Packet [ 3 ] Reached Bucket
+Packet [ 4 ] Reached Bucket
+Packet [ 5 ] Reached Bucket
+Packet [ 6 ] Reached Bucket
+
+Packet [ 0 ] sent from Bucket
+
+Packet [ 7 ] Reached Bucket
+Packet [ 8 ] Reached Bucket
+Packet [ 9 ] Reached Bucket
+Packet [ 10 ] Reached Bucket
+Packet [ 11 ] Reached Bucket
+
+Packet [ 1 ] sent from Bucket
+Packet [ 2 ] sent from Bucket
+Packet [ 3 ] sent from Bucket
+
+Packet [ 12 ] Reached Bucket
+Packet [ 13 ] Reached Bucket
+
+Packet [ 4 ] sent from Bucket
+Packet [ 5 ] sent from Bucket
+Packet [ 6 ] sent from Bucket
+
+Packet [ 14 ] Reached Bucket
+Packet [ 15 ] Reached Bucket
+Packet [ 16 ] Reached Bucket
+Packet [ 17 ] Reached Bucket
+Packet [ 18 ] Reached Bucket
+Packet [ 19 ] Reached Bucket
+Packet [ 20 ] Reached Bucket
+Packet [ 21 ] Reached Bucket
+Packet [ 22 ] Reached Bucket
+Packet [ 23 ] Reached Bucket
+
+Packet [ 7 ] sent from Bucket
+Packet [ 8 ] sent from Bucket
+Packet [ 9 ] sent from Bucket
+
+Packet [ 24 ] Reached Bucket
+Packet [ 25 ] Reached Bucket
+Packet [ 26 ] Reached Bucket
+
+Packet [ 10 ] sent from Bucket
+Packet [ 11 ] sent from Bucket
+Packet [ 12 ] sent from Bucket
+
+Packet [ 27 ] Reached Bucket
+Packet [ 28 ] Reached Bucket
+Packet [ 29 ] Reached Bucket
+Packet [ 30 ] Reached Bucket
+Bucket full 15!! cannot push
+Bucket full 15!! cannot push
+Bucket full 15!! cannot push
+Bucket full 15!! cannot push
+Bucket full 15!! cannot push
+
+Packet [ 13 ] sent from Bucket
+Packet [ 14 ] sent from Bucket
+Packet [ 15 ] sent from Bucket
+
+Packet [ 36 ] Reached Bucket
+Packet [ 37 ] Reached Bucket
+Packet [ 38 ] Reached Bucket
+Bucket full 15!! cannot push
+
+Packet [ 16 ] sent from Bucket
+Packet [ 17 ] sent from Bucket
+Packet [ 18 ] sent from Bucket
+
+Packet [ 19 ] sent from Bucket
+Packet [ 20 ] sent from Bucket
+Packet [ 21 ] sent from Bucket
+
+Packet [ 22 ] sent from Bucket
+Packet [ 23 ] sent from Bucket
+Packet [ 24 ] sent from Bucket
+
+Packet [ 25 ] sent from Bucket
+Packet [ 26 ] sent from Bucket
+Packet [ 27 ] sent from Bucket
+
+Packet [ 28 ] sent from Bucket
+Packet [ 29 ] sent from Bucket
+Packet [ 30 ] sent from Bucket
+
+Packet [ 36 ] sent from Bucket
+Packet [ 37 ] sent from Bucket
+Packet [ 38 ] sent from Bucket
+
+Server Exiting...
+
+
+// client 
+
+Socket Creation Successfull
+Sockid: 3
+Connection successful
+
+packet [ 1 ] received!!
+packet [ 2 ] received!!
+packet [ 3 ] received!!
+Speed: 3 p/s
+
+packet [ 4 ] received!!
+packet [ 5 ] received!!
+packet [ 6 ] received!!
+Speed: 3 p/s
+
+packet [ 7 ] received!!
+packet [ 8 ] received!!
+packet [ 9 ] received!!
+Speed: 3 p/s
+
+packet [ 10 ] received!!
+packet [ 11 ] received!!
+packet [ 12 ] received!!
+Speed: 3 p/s
+
+packet [ 13 ] received!!
+packet [ 14 ] received!!
+packet [ 15 ] received!!
+Speed: 3 p/s
+
+packet [ 16 ] received!!
+packet [ 17 ] received!!
+packet [ 18 ] received!!
+Speed: 3 p/s
+
+packet [ 19 ] received!!
+packet [ 20 ] received!!
+packet [ 21 ] received!!
+Speed: 3 p/s
+
+packet [ 22 ] received!!
+packet [ 23 ] received!!
+packet [ 24 ] received!!
+Speed: 3 p/s
+
+packet [ 25 ] received!!
+packet [ 26 ] received!!
+packet [ 27 ] received!!
+Speed: 3 p/s
+
+packet [ 28 ] received!!
+packet [ 29 ] received!!
+packet [ 30 ] received!!
+Speed: 3 p/s
+
+packet [ 36 ] received!!
+packet [ 37 ] received!!
+packet [ 38 ] received!!
+Speed: 3 p/s
+
+Client Exiting...

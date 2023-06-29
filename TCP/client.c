@@ -35,18 +35,17 @@ void chatLoop(int sockfd) {
 		printf("Enter msg: ");
 		scanf("%[^\n]s", sendP.msg);
 		getchar();
-
 		send(sockfd, &sendP, sizeof(sendP), 0);
+		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
+			printf("\nClient Exiting...");
+			break;
+		}
+
 		if (recv(sockfd, &recvP, sizeof(recvP), 0) == -1) {
 			printf("Timeout!!. Resend again...\n");
 			continue;
 		} else {
 			printf("\tmsg: %s\n", recvP.msg);
-		}
-
-		if (!strcmp(sendP.msg, "Exit") || !strcmp(sendP.msg, "exit")) {
-			printf("\nClient Exiting...");
-			break;
 		}
 	}
 }
