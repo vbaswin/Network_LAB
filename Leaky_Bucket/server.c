@@ -14,6 +14,21 @@ typedef struct PACK {
 	struct PACK *next;
 } pack;
 
+typedef struct {
+	pack **head;
+	int *rand_val;	  // rand_val[] not allowed in c structs
+	int no_of_packets;
+	int bucket_size;
+} push_thread_args;
+
+typedef struct {
+	pack **head;
+	int max_recv_speed;
+	int no_of_packets;
+	int sockfd;
+	struct sockaddr_in cliaddr;
+} send_thread_args;
+
 int Enqueue(pack ***head, int idx, int bucket_size) {
 	pack *newNode = (pack *)malloc(sizeof(pack));
 	newNode->idx = idx;
@@ -32,7 +47,8 @@ int Enqueue(pack ***head, int idx, int bucket_size) {
 		}
 		temp->next = newNode;
 	}
-	printf("Packet [ %d ] Reached Bucket\n", idx);
+	if (idx != -1)
+		printf("Packet [ %d ] Reached Bucket\n", idx);
 	return 1;
 }
 
@@ -46,7 +62,8 @@ int Dequeue(pack ***head) {
 	temp = (**head)->next;
 	free(**head);
 	**head = temp;
-	printf("Packet [ %d ] sent from Bucket\n", idx);
+	if (idx != -1)
+		printf("Packet [ %d ] sent from Bucket\n", idx);
 	return idx;
 }
 
@@ -61,34 +78,38 @@ void Display(pack **head) {
 	printf("\n");
 }
 
-void push_to_bucket(pack **head, int rand_val[], int no_of_packets, int bucket_size) {
-	int temp_no = no_of_packets, to_push, idx = 0;
+// void push_to_bucket(pack **head, int rand_val[], int no_of_packets, int bucket_size) {
+void push_to_bucket(void *arg) {
+	push_thread_args *args = (push_thread_args *)arg;
+	int temp_no = args->no_of_packets, to_push, idx = 0;
 
 	for (int i = 0; i < 100 && temp_no; ++i) {
-		if (rand_val[i] > temp_no)
+		if (args->rand_val[i] > temp_no)
 			to_push = temp_no;
 		else
-			to_push = rand_val[i];
+			to_push = args->rand_val[i];
 
 		printf("to_push: %d\n", to_push);
 		for (int j = 0; j < to_push; ++j, ++idx)
-			Enqueue(&head, idx, bucket_size);
+			Enqueue(&(args->head), idx, args->bucket_size);
 		temp_no -= to_push;
-		Display(head);
+		Display(args->head);
 		// sleep(1);
 	}
 	idx = -1;
-	while (!Enqueue(&head, idx, bucket_size))
+	while (!Enqueue(&args->head, idx, args->bucket_size))
 		;
-	Display(head);
+	Display(args->head);
 }
 
-void leak_from_bucket(pack **head, int max_recv_speed, int no_of_packets, int sockfd, struct sockaddr_in cliaddr) {
+// void leak_from_bucket(pack **head, int max_recv_speed, int no_of_packets, int sockfd, struct sockaddr_in cliaddr) {
+void leak_from_bucket(void *arg) {
 	int pack;
-	for (int i = 0; i < no_of_packets + 1;) {
-		for (int j = 0; j < max_recv_speed && i < no_of_packets + 1; ++j, ++i) {
-			pack = Dequeue(&head);
-			sendto(sockfd, &pack, sizeof(pack), 0, (struct sockaddr *)&cliaddr, sizeof(cliaddr));
+	send_thread_args *args = (send_thread_args *)arg;
+	for (int i = 0; i < args->no_of_packets + 1;) {
+		for (int j = 0; j < args->max_recv_speed && i < args->no_of_packets + 1; ++j, ++i) {
+			pack = Dequeue(&args->head);
+			sendto(args->sockfd, &pack, sizeof(pack), 0, (struct sockaddr *)&args->cliaddr, sizeof(args->cliaddr));
 		}
 		sleep(1);
 	}
@@ -138,9 +159,23 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	// ThreadArgs
 
 	// pthread_create(&push_thread, NULL, push_to_bucket, )
+	push_thread_args push_args;
+	push_args.bucket_size = bucket_size;
+	push_args.head = &head;
+	push_args.no_of_packets = no_of_packets;
+	push_args.rand_val = rand_val;
 
-	push_to_bucket(&head, rand_val, no_of_packets, bucket_size);
-	leak_from_bucket(&head, max_recv_speed, no_of_packets, sockfd, cliaddr);
+	push_to_bucket((void *)&push_args);
+
+	send_thread_args send_args;
+	send_args.cliaddr = cliaddr;
+	send_args.head = &head;
+	send_args.max_recv_speed = max_recv_speed;
+	send_args.sockfd = sockfd;
+	send_args.no_of_packets = no_of_packets;
+
+
+	leak_from_bucket((void *)&send_args);
 	/*
 
 	int pack = 0;
