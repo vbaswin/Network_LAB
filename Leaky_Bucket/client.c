@@ -22,21 +22,28 @@ void chatLoop(int sockfd, struct sockaddr_in servaddr) {
 	timeout.tv_sec = 0;		// no of seconds for timeout(or wait)
 	timeout.tv_usec = 1;	// no of microseconds for timeout
 
-	int ack;
-
-	char addRes[] = "Initial Address resolution\n";
-	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+	int ack, pack;
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
 		perror("Setsockopt failed");
 		return;
 	}
-	struct timespec ts;
+	while (recvfrom(sockfd, &pack, sizeof(pack), 0, (struct sockaddr *)NULL, NULL) > 0)
+		;
+
+	char addRes[] = "Initial Address resolution\n";
+	sendto(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)NULL, sizeof(servaddr));
+
+	struct timespec ts, ts_start;
 	ts.tv_sec = 0;
 	ts.tv_nsec = 9.7 * 100000000;	 // Convert milliseconds to nanoseconds
 
-	nanosleep(&ts, NULL);
-	int pack, speed;
+	ts_start.tv_sec = 1;
+	ts_start.tv_nsec = 4 * 100000000;
+
+	nanosleep(&ts_start, NULL);
+	sleep(1);
+	int speed;
 	printf("\n");
 	while (1) {
 		speed = 0;

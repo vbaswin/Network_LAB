@@ -9,6 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
+pthread_mutex_t mutex;
+
 typedef struct PACK {
 	int idx;
 	struct PACK *next;
@@ -40,7 +42,7 @@ int Enqueue(pack ***head, int idx, int bucket_size) {
 		int sz = 0;
 		for (temp = **head; temp->next != NULL; temp = temp->next, ++sz) {
 			if (sz > bucket_size) {
-				printf("Bucket full %d!! cannot push\n", sz);
+				printf("Bucket full %d!! cannot push\n", sz - 1);
 				free(newNode);
 				return 0;
 			}
@@ -55,7 +57,7 @@ int Enqueue(pack ***head, int idx, int bucket_size) {
 int Dequeue(pack ***head) {
 	if (!**head) {
 		printf("Emtpy queue!!\n");
-		return -1;
+		return 0;
 	}
 	int idx = (**head)->idx;
 	pack *temp;
@@ -79,9 +81,15 @@ void Display(pack **head) {
 }
 
 // void push_to_bucket(pack **head, int rand_val[], int no_of_packets, int bucket_size) {
-void push_to_bucket(void *arg) {
+void *push_to_bucket(void *arg) {
 	push_thread_args *args = (push_thread_args *)arg;
 	int temp_no = args->no_of_packets, to_push, idx = 0;
+
+
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 9.7 * 100000000;	 // Convert milliseconds to nanoseconds
+
 
 	for (int i = 0; i < 100 && temp_no; ++i) {
 		if (args->rand_val[i] > temp_no)
@@ -89,29 +97,44 @@ void push_to_bucket(void *arg) {
 		else
 			to_push = args->rand_val[i];
 
-		printf("to_push: %d\n", to_push);
+		// printf("to_push: %d\n", to_push);
+		pthread_mutex_lock(&mutex);
 		for (int j = 0; j < to_push; ++j, ++idx)
 			Enqueue(&(args->head), idx, args->bucket_size);
+		printf("\n");
+		pthread_mutex_unlock(&mutex);
 		temp_no -= to_push;
-		Display(args->head);
-		// sleep(1);
+		// Display(args->head);
+		nanosleep(&ts, NULL);
 	}
 	idx = -1;
-	while (!Enqueue(&args->head, idx, args->bucket_size))
+	while (!Enqueue(&(args->head), idx, args->bucket_size))
 		;
-	Display(args->head);
 }
 
 // void leak_from_bucket(pack **head, int max_recv_speed, int no_of_packets, int sockfd, struct sockaddr_in cliaddr) {
-void leak_from_bucket(void *arg) {
+void *leak_from_bucket(void *arg) {
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 9.7 * 100000000;	 // Convert milliseconds to nanoseconds
+
 	int pack;
 	send_thread_args *args = (send_thread_args *)arg;
 	for (int i = 0; i < args->no_of_packets + 1;) {
+		pthread_mutex_lock(&mutex);
 		for (int j = 0; j < args->max_recv_speed && i < args->no_of_packets + 1; ++j, ++i) {
 			pack = Dequeue(&args->head);
+			if (!pack)
+				break;
 			sendto(args->sockfd, &pack, sizeof(pack), 0, (struct sockaddr *)&args->cliaddr, sizeof(args->cliaddr));
+			if (pack == -1)
+				break;
 		}
-		sleep(1);
+		printf("\n");
+		pthread_mutex_unlock(&mutex);
+		if (pack == -1)
+			break;
+		nanosleep(&ts, NULL);
 	}
 }
 
@@ -123,9 +146,6 @@ void calc_rand(int rand_val[], int max_send_speed) {
 
 void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	pack *head = NULL;
-	struct timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
 
 	socklen_t len = sizeof(cliaddr);
 
@@ -151,9 +171,12 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	}
 	*/
 
+	printf("\n\n");
+
 	char addRes[100];
 	// initial address resolution
 	recvfrom(sockfd, addRes, sizeof(addRes), 0, (struct sockaddr *)&cliaddr, &len);
+	pthread_mutex_init(&mutex, NULL);
 
 	pthread_t push_thread, send_thread;
 	// ThreadArgs
@@ -165,7 +188,10 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	push_args.no_of_packets = no_of_packets;
 	push_args.rand_val = rand_val;
 
-	push_to_bucket((void *)&push_args);
+
+	// push_to_bucket((void *)&push_args);
+	pthread_create(&push_thread, NULL, push_to_bucket, (void *)&push_args);
+	sleep(1);
 
 	send_thread_args send_args;
 	send_args.cliaddr = cliaddr;
@@ -175,7 +201,8 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 	send_args.no_of_packets = no_of_packets;
 
 
-	leak_from_bucket((void *)&send_args);
+	// leak_from_bucket((void *)&send_args);
+	pthread_create(&send_thread, NULL, leak_from_bucket, (void *)&send_args);
 	/*
 
 	int pack = 0;
@@ -187,6 +214,9 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 		sleep(1);
 	}
 	*/
+	pthread_join(push_thread, NULL);
+	pthread_join(send_thread, NULL);
+	pthread_mutex_destroy(&mutex);
 
 	/*
 	// setting to real timeout 5s
