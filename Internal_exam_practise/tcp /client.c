@@ -24,6 +24,7 @@ int main() {
 
 	recv(sockfd, &recvP, sizeof(recvP), 0);
 	printf("%s\n", recvP.msg);
+	// sleep(6);
 	send(sockfd, &sendP, sizeof(sendP), 0);
 
 	close(sockfd);

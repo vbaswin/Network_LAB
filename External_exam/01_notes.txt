@@ -1,0 +1,40 @@
+   struct sockaddr_in {
+               sa_family_t    sin_family; /* address family: AF_INET */
+               in_port_t      sin_port;   /* port in network byte order */
+               struct in_addr sin_addr;   /* internet address */
+           };
+
+/* Internet address */
+struct in_addr {
+	uint32_t       s_addr;     /* address in network byte order */
+};
+
+htonl - Host to Network Long: 32-bit unsigned integer (typically an IPv4 address) in host byte order and converts it to network byte order.
+htons - Host to Network Short: 16 bit
+
+When sending data over the network, the data must be converted to network byte order 
+using htonl and htons. On the receiving side, the data must be converted back to host byte order using corresponding functions, ntohl and ntohs, before using it in the local system.
+
+==> Using these functions ensures that your networking code works correctly and is portable across different 
+platforms with varying byte orders. <==
+
+inet_addr 
+function is used to convert the IPv4 address string "127.0.0.1" into its 32-bit binary representation, which is then assigned to the sin_addr.s_addr field of the struct sockaddr_in data structure.
+
+bind() 
+	- function is used to associate a socket with a specific network address and port number.
+
+TCP specific listen and accept
+listen():
+
+The listen() function is used to put the socket in a passive mode, allowing it to accept incoming client connections.
+It takes two arguments: the socket file descriptor (sockfd) and the maximum number of pending connections that can be queued up before the server starts accepting them.
+When the server is in the listening state, it can accept incoming connections from clients trying to connect to the bound address and port.
+Until the server reaches the limit of pending connections, incoming connection requests will be queued by the operating system.
+
+accept():
+
+The accept() function is used to accept an incoming connection request and create a new socket dedicated to that specific client.
+It takes three arguments: the server socket file descriptor (sockfd), a pointer to a structure (client_addr) to store the client's address information, and a pointer to the size of the client's address structure (addrlen).
+The accept() function blocks the execution until a client connects. Once a client connects, it returns a new socket file descriptor that represents the connection with the client.
+The server can then use this new socket to communicate with the connected client.

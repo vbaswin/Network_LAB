@@ -207,7 +207,8 @@ void chatLoop(int sockfd, struct sockaddr_in cliaddr) {
 		sleep(1);
 	}
 	*/
-	pthread_join(push_thread, NULL);
+	pthread_join(push_thread, NULL);	// second para -> return from thread, -> dynamic allocated or reference given
+										// should not be locally allocated
 	pthread_join(send_thread, NULL);
 	pthread_mutex_destroy(&mutex);
 
@@ -293,6 +294,7 @@ int main() {
 
 	chatLoop(sockfd, servaddr);
 
+	close(connfd);
 	close(sockfd);
 
 	return 0;

@@ -30,6 +30,12 @@ int main() {
 	strcpy(sendP.msg, "Hi");
 
 	send(connfd, &sendP, sizeof(sendP), 0);
+
+	struct timeval timeout;
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
+
+	setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 	recv(connfd, &recvP, sizeof(recvP), 0);
 	printf("%s\n", recvP.msg);
 
